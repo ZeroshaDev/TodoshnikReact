@@ -19,7 +19,8 @@ class Form extends React.Component {
     if (this.state.content !== "") {
       let mas = this.state.list;
       let key = this.state.keyCounter + 1;
-      let newTask = <Task key={key} content={this.state.content} completed={false}/>;
+      this.state.storage.add(key,this.state.content,false);
+      let newTask = <Task key={key} id={key} content={this.state.content} completed={false} storage={this.state.storage}/>;
       mas.push(newTask);
       this.setState({ list: mas, keyCounter: key });
       event.target.previousSibling.value = "";
@@ -29,7 +30,6 @@ class Form extends React.Component {
     }
   }
   textBoxOnChange(event) {
-    this.setState({ content: event.target.value });
     if (event.key === "Enter") {
       const e = new Event("click", { bubbles: true });
       event.target.nextSibling.dispatchEvent(e);
@@ -38,6 +38,7 @@ class Form extends React.Component {
       event.target.value = "";
       event.target.blur();
     }
+    this.setState({ content: event.target.value });
   }
   async loadNotates(storage) {
     let posts;
@@ -54,11 +55,10 @@ class Form extends React.Component {
     posts.forEach((elem) => {
       storage.load(elem.id, elem.content, elem.completed);
       let mas = this.state.list;
-      let newTask = <Task key={elem.id} content={elem.content} completed={elem.completed}/>;
+      let newTask = <Task key={elem.id} id={elem.id} content={elem.content} completed={elem.completed} storage={this.state.storage}/>;
       mas.push(newTask);
       this.setState({ list: mas, keyCounter: elem.id });
     });
-    this.render();
   }
   render() {
     this.state.storage.log();
@@ -67,7 +67,7 @@ class Form extends React.Component {
         <input
           type="text"
           placeholder="Input something"
-          onKeyDown={this.textBoxOnChange}
+          onKeyUp={this.textBoxOnChange}
         />
         <button onClick={this.clickAddBtn}>Add</button>
         <ul>{this.state.list}</ul>

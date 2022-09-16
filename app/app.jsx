@@ -1,7 +1,7 @@
-const ReactDOM = require("react-dom/client");
-const React = require("react");
-const Form=require("./components/form.jsx");
-  
+import ReactDOM from "react-dom/client";
+import React from "react";
+
+import Form from "./components/form.jsx";
 ReactDOM.createRoot(
     document.getElementById("app")
 )

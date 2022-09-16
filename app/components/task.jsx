@@ -1,61 +1,56 @@
-const React = require("react");
-
+import React from "react";
+import Content from "./content.jsx";
 
 class Task extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { nowOnChange: false, content: ""};
+    this.state = { nowOnChange: false, content: "" };
   }
   deleteOnClic = () => {
-    this.props.storage.delete(this.props.id);
-    this.props.refresh();
+    const { storage, refresh } = this.props;
+    storage.delete(this.props.id);
+    refresh();
   };
   doneOnClick = () => {
-    this.props.storage.complete(this.props.id);
-    this.props.refresh();
+    const { storage, refresh } = this.props;
+    storage.complete(this.props.id);
+    refresh();
   };
   editOnClick = () => {
-    if (this.state.nowOnChange) {
-      this.props.storage.edit(this.props.id, this.state.content)};
-    this.setState({ nowOnChange: !this.state.nowOnChange });
-    this.props.refresh();
-  };
-  handleOnKeyUp = (e) => {
-    this.setState({ content: e.target.value });
-    if (e.key === "Enter") {
-      this.editOnClick();
+    const { storage, refresh, id } = this.props;
+    const { content, nowOnChange } = this.state;
+    if (nowOnChange) {
+      storage.edit(id, content);
     }
-    if (e.key === "Escape") {
-      //проблема! создать для инпука или дива отдельный компонент 
-      this.editOnClick();
-    }
+    this.setState({ nowOnChange: !nowOnChange });
+    refresh();
   };
 
+  contentSetter = (updatedContent) => {
+    this.setState({ content: updatedContent });
+  };
+
+  nowOnChangeSetter = () => {
+    this.setState({ nowOnChange: false });
+  };
   render() {
+    const { completed, content } = this.props;
+    const { nowOnChange } = this.state;
     return (
       <li>
         <button onClick={this.doneOnClick} className="doneBtn">
-          {this.props.completed === true ? "Uncomplete" : "Complete"}
+          {completed ? "Uncomplete" : "Complete"}
         </button>
-        //таск тайтл отдельный компонент
-        {!this.state.nowOnChange ? (
-          <div
-            className={
-              this.props.completed === true ? "content done" : "content "
-            }
-            onClick={this.editOnClick}
-          >
-            {this.props.content}
-          </div>
-        ) : (
-          <input
-            type="text"
-            defaultValue={this.props.content}
-            onKeyUp={this.handleOnKeyUp}
-          ></input>
-        )}
-        <button onClick={this.editOnClick} disabled={this.props.completed}>
-          {!this.state.nowOnChange ? "Edit" : "Save"}
+        <Content
+          completed={completed}
+          content={content}
+          nowOnChange={nowOnChange}
+          editOnClick={this.editOnClick}
+          contentSetter={this.contentSetter}
+          nowOnChangeSetter={this.nowOnChangeSetter}
+        />
+        <button onClick={this.editOnClick} disabled={completed}>
+          {!nowOnChange ? "Edit" : "Save"}
         </button>
         <button onClick={this.deleteOnClic}>Delete</button>
       </li>
@@ -63,4 +58,4 @@ class Task extends React.Component {
   }
 }
 
-module.exports = Task;
+export default Task;

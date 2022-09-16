@@ -1,50 +1,46 @@
-const React = require("react");
-const Task = require("./task.jsx");
-const Storage = require("./storage.js");
+import React from "react";
+import Task from "./task.jsx";
+import Storage from "./storage.js";
+import uuid from "react-uuid";
 
 const store = new Storage([], 0);
 //юайди 4 библиотеку
 //импорты вместо реквайр
-//добавить линтер(ESlint) и притиер 
+//добавить линтер(ESlint) и притиер
+// страничка логина и пометка тасок для владельца
 class Form extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       list: [],
-      content: "",
-      keyCounter: 0,
+      content: ""
     };
   }
   handleRefresh = () => {
     this.setState({
       list: store.storage,
-      keyCounter:
-        store.storage.length > 0
-          ? store.storage[store.storage.length - 1].id
-          : 0,
     });
   };
-  handleClickAddBtn = (event) => {
-    if (event.target.previousSibling.value !== "") {
-      store.add(
-        this.state.keyCounter + 1,
-        event.target.previousSibling.value,
-        false
-      );
+  handleClickAddBtn = () => {
+    const { content} = this.state;
+    if (content !== "") {
+      store.add(uuid(), content, false);
+      this.setState({ content: "" });
       this.handleRefresh();
-      event.target.previousSibling.value = "";
     } else {
-      alert("In textBox mast be some information");
+      alert("In field mast be some information");
     }
+  };
+  handleChange = (event) => {
+    this.setState({ content: event.target.value });
   };
   handleKeyUp = (event) => {
     if (event.key === "Enter") {
-      const e = new Event("click", { bubbles: true });
-      event.target.nextSibling.dispatchEvent(e);
+      this.handleClickAddBtn();
     }
     if (event.key === "Escape") {
-      event.target.value = "";
       event.target.blur();
+      this.setState({ content: "" });
     }
   };
   async componentDidMount() {
@@ -53,16 +49,20 @@ class Form extends React.Component {
   }
   render() {
     //this.state.storage.log();
+    const { list, content } = this.state;
+
     return (
       <div>
         <input
           type="text"
           placeholder="Input something"
           onKeyUp={this.handleKeyUp}
+          onChange={this.handleChange}
+          value={content}
         />
         <button onClick={this.handleClickAddBtn}>Add</button>
         <ul>
-          {this.state.list.map((elem) => (
+          {list.map((elem) => (
             <Task
               key={elem.id}
               id={elem.id}
@@ -78,4 +78,4 @@ class Form extends React.Component {
   }
 }
 
-module.exports = Form;
+export default Form;

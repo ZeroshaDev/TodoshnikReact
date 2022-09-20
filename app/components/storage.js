@@ -2,6 +2,13 @@ class Storage {
   constructor(storage, index) {
     this._storage = storage;
     this._index = index;
+    this._token = "";
+  }
+  get token() {
+    return this._token;
+  }
+  set token(value) {
+    this._token = value;
   }
   get storage() {
     return this._storage;
@@ -12,8 +19,12 @@ class Storage {
   set index(value) {
     this._index = value;
   }
+  tokenSetter(tk) {
+    this.token = tk;
+  }
   log() {
     console.log(this._storage);
+    console.log(this._token);
   }
   add(id, content, completed) {
     this.storage.push({
@@ -21,11 +32,20 @@ class Storage {
       content: content,
       completed: completed,
     });
-    this.apiCall(this.storage[this.storage.length - 1], "/addpost");
+    this.apiCall(
+      this.storage[this.storage.length - 1],
+      "/tasks/addpost",
+      "POST"
+    );
   }
   async load() {
     let posts;
-    await fetch(`${process.env.URL}/getposts`)
+    await fetch(`${process.env.URL}/tasks/getposts`, {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${this.token}`,
+      },
+    })
       .then(function (response) {
         return response.json();
       })
@@ -47,10 +67,10 @@ class Storage {
       if (elem.id === id) {
         if (elem.completed == true) {
           elem.completed = false;
-          this.apiCall(elem, "/editpost");
+          this.apiCall(elem, "/tasks/editpost", "PUT");
         } else {
           elem.completed = true;
-          this.apiCall(elem, "/editpost");
+          this.apiCall(elem, "/tasks/editpost", "PUT");
         }
       }
     });
@@ -59,25 +79,27 @@ class Storage {
     this.storage.forEach((elem) => {
       if (elem.id === id) {
         elem.content = content;
-        this.apiCall(elem, "/editpost");
+        this.apiCall(elem, "/tasks/editpost", "PUT");
       }
     });
   }
   delete(id) {
     this.storage.forEach((elem, i) => {
       if (elem.id === id) {
-        this.apiCall(elem, "/deletepost");
+        this.apiCall(elem, "/tasks/deletepost", "DELETE");
         this.storage.splice(i, 1);
       }
     });
   }
-  //апиколл название
-  async apiCall(elem, path) {
+
+  async apiCall(elem, path, met) {
     let url = process.env.URL;
     const response = await fetch(url + path, {
-      mode: "no-cors",
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: met,
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${this.token}`,
+      },
       body: JSON.stringify({
         id: elem.id,
         content: elem.content,

@@ -2,18 +2,20 @@ import React from "react";
 import Task from "./task.jsx";
 import Storage from "./storage.js";
 import uuid from "react-uuid";
+import Windowd from "./login/windowd.jsx";
 
 const store = new Storage([], 0);
 //юайди 4 библиотеку
 //импорты вместо реквайр
 //добавить линтер(ESlint) и притиер
 // страничка логина и пометка тасок для владельца
+//реакт роутер
 class Form extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       list: [],
-      content: ""
+      content: "",
     };
   }
   handleRefresh = () => {
@@ -22,7 +24,7 @@ class Form extends React.Component {
     });
   };
   handleClickAddBtn = () => {
-    const { content} = this.state;
+    const { content } = this.state;
     if (content !== "") {
       store.add(uuid(), content, false);
       this.setState({ content: "" });
@@ -43,16 +45,22 @@ class Form extends React.Component {
       this.setState({ content: "" });
     }
   };
-  async componentDidMount() {
+
+  loader = async () => {
+    //store.log();
     await store.load();
     this.handleRefresh();
-  }
+  };
   render() {
-    //this.state.storage.log();
     const { list, content } = this.state;
 
     return (
       <div>
+        <Windowd
+          didMount={this.componentDidMount}
+          storage={store}
+          loader={this.loader}
+        />
         <input
           type="text"
           placeholder="Input something"

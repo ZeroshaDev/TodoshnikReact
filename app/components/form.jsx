@@ -1,37 +1,47 @@
 import React from "react";
 import Task from "./task.jsx";
-import Storage from "./storage.js";
+//import Storage from "./storage.js";
 import uuid from "react-uuid";
 import Windowd from "./login/windowd.jsx";
+import MyContext from "./MyContext.jsx";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+//const store = new Storage([], 0);
 
-const store = new Storage([], 0);
-//юайди 4 библиотеку
-//импорты вместо реквайр
 //добавить линтер(ESlint) и притиер
-// страничка логина и пометка тасок для владельца
-//реакт роутер
+
 class Form extends React.Component {
+  static contextType = MyContext;
   constructor(props) {
     super(props);
     this.state = {
-      list: [],
+      list: "",
       content: "",
+      logined: true,
     };
   }
   handleRefresh = () => {
-    this.setState({
-      list: store.storage,
-    });
+    console.log("refresh");
+    this.setState({ list: "1" });
+    // this.setState({
+    //   list: this.context.store.storage,
+    // });
   };
   handleClickAddBtn = () => {
     const { content } = this.state;
     if (content !== "") {
-      store.add(uuid(), content, false);
+      this.context.store.add(uuid(), content, false);
       this.setState({ content: "" });
       this.handleRefresh();
     } else {
       alert("In field mast be some information");
     }
+  };
+  handleClickLogOutBtn = () => {
+    this.setState({ logined: false });
+    this.context.store.clear();
+  };
+  chengeLoginedOnTrue = () => {
+    this.setState({ logined: true });
   };
   handleChange = (event) => {
     this.setState({ content: event.target.value });
@@ -47,41 +57,88 @@ class Form extends React.Component {
   };
 
   loader = async () => {
-    //store.log();
-    await store.load();
+    this.context.store.log();
+    await this.context.store.load();
     this.handleRefresh();
   };
   render() {
-    const { list, content } = this.state;
-
+    const { content } = this.state;
     return (
-      <div>
-        <Windowd
-          didMount={this.componentDidMount}
-          storage={store}
-          loader={this.loader}
-        />
-        <input
-          type="text"
-          placeholder="Input something"
-          onKeyUp={this.handleKeyUp}
-          onChange={this.handleChange}
-          value={content}
-        />
-        <button onClick={this.handleClickAddBtn}>Add</button>
-        <ul>
-          {list.map((elem) => (
-            <Task
-              key={elem.id}
-              id={elem.id}
-              content={elem.content}
-              completed={elem.completed}
-              storage={store}
-              refresh={this.handleRefresh}
+      <BrowserRouter>
+        {this.context.store.token ? (
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <div>
+                  <Windowd
+                    storage={this.context.store}
+                    loader={this.loader}
+                    chengeLoginedOnTrue={this.chengeLoginedOnTrue}
+                  />
+                </div>
+              }
             />
-          ))}
-        </ul>
-      </div>
+            <Route
+              path="/main"
+              element={
+                <div>
+                  {!this.state.logined ? <Navigate to="/login"></Navigate> : ""}
+                  <input
+                    type="text"
+                    placeholder="Input something"
+                    onKeyUp={this.handleKeyUp}
+                    onChange={this.handleChange}
+                    value={content}
+                  />
+                  <button onClick={this.handleClickAddBtn}>Add</button>
+                  <button onClick={this.handleClickLogOutBtn}>LogOut</button>
+                  <ul>
+                    <MyContext.Provider value={this.context}>
+                      <MyContext.Consumer>
+                        {({ store }) =>
+                          store.storage.map((elem) => (
+                            <Task
+                              key={elem.id}
+                              id={elem.id}
+                              content={elem.content}
+                              completed={elem.completed}
+                              storage={store}
+                              refresh={this.handleRefresh}
+                            />
+                          ))
+                        }
+                      </MyContext.Consumer>
+                    </MyContext.Provider>
+                  </ul>
+                </div>
+              }
+            />
+            <Route path="/error" element={<div>ERROR!!!</div>} />
+            {this.context.store.token ? (
+              ""
+            ) : (
+              <Route path="*" element={<Navigate to="/login"></Navigate>} />
+            )}
+          </Routes>
+        ) : (
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <div>
+                  <Windowd
+                    storage={this.context.store}
+                    loader={this.loader}
+                    chengeLoginedOnTrue={this.chengeLoginedOnTrue}
+                  />
+                </div>
+              }
+            />
+            <Route path="*" element={<Navigate to="/login"></Navigate>} />
+          </Routes>
+        )}
+      </BrowserRouter>
     );
   }
 }

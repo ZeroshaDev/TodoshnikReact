@@ -1,4 +1,5 @@
 import React from "react";
+import {Navigate} from "react-router-dom";
 
 class Windowd extends React.Component {
   constructor(props) {
@@ -21,8 +22,11 @@ class Windowd extends React.Component {
       token = data;
     });
     this.props.storage.tokenSetter(token.token);
+    
     this.setState({ display: false });
+   
     this.props.loader();
+    this.props.chengeLoginedOnTrue();
   };
   handleClickRegister = async () => {
     let token;
@@ -55,6 +59,7 @@ class Windowd extends React.Component {
   render() {
     return (
       <div className={this.state.display ? "modal" : "hidden"}>
+         {this.state.display==false?<Navigate to="/main"></Navigate>:""}
         <div className="modalContent">
           <h2>Please authorizate for using app!</h2>
           <div className="modalInput">
@@ -64,7 +69,7 @@ class Windowd extends React.Component {
             <input type="text" placeholder="Please enter your password" onChange={this.inputPassword}></input>
           </div>
           <div className="modalInput">
-            <button className="loginBtn" onClick={this.handleClickLogin}>
+            <button className="loginBtn" onClick={this.handleClickLogin }>
               Login
             </button>
             <button className="loginBtn" onClick={this.handleClickRegister}>
